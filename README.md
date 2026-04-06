@@ -1,6 +1,6 @@
 # Job Radar
 
-A local job feed reader built with FastAPI that pulls remote job postings from multiple RSS feeds and helps surface relevant roles faster.
+A localhost job feed reader built with FastAPI that pulls remote job postings from multiple RSS feeds and helps surface relevant roles faster.
 
 It supports custom keyword filtering, posting-age filters, highlighted keyword matches, and expandable summaries so you can scan more jobs with less noise.
 
