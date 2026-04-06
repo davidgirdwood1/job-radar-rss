@@ -27,6 +27,16 @@ templates = Jinja2Templates(directory="app/templates")
 Base.metadata.create_all(bind=engine)
 
 
+def normalize_days(value) -> int:
+    try:
+        if value is None or value == "":
+            return 5
+        parsed = int(value)
+        return parsed if parsed >= 1 else 5
+    except Exception:
+        return 5
+
+
 def build_job_view_models(jobs, keywords_list, days):
     view_jobs = []
 
@@ -61,7 +71,6 @@ def build_job_view_models(jobs, keywords_list, days):
     return view_jobs
 
 
-
 def build_redirect_url(
     keywords: str = "",
     days: int | None = None,
@@ -88,15 +97,16 @@ def build_redirect_url(
 def home(
     request: Request,
     keywords: str = Query(default=""),
-    days: int | None = Query(default=None, ge=1),
+    days: int = Query(default=5, ge=1),
     inserted: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
     keywords_list = parse_keywords(keywords)
+    days = normalize_days(days)
 
     jobs = (
         db.query(Job)
-        .order_by(Job.score.desc(), Job.published.desc(), Job.created_at.desc())
+        .order_by(Job.published.desc(), Job.score.desc())
         .limit(500)
         .all()
     )
@@ -121,11 +131,13 @@ def home(
 @app.post("/refresh")
 def refresh_jobs(
     keywords: str = Form(default=""),
-    days: int | None = Form(default=None),
+    days: str = Form(default=""),
     db: Session = Depends(get_db),
 ):
     keywords_list = parse_keywords(keywords)
-    jobs = fetch_jobs(custom_keywords=keywords_list, max_age_days=days)
+    normalized_days = normalize_days(days)
+
+    jobs = fetch_jobs(custom_keywords=keywords_list, max_age_days=normalized_days)
     inserted = 0
 
     for job_data in jobs:
@@ -138,7 +150,11 @@ def refresh_jobs(
             db.rollback()
 
     return RedirectResponse(
-        url=build_redirect_url(keywords=keywords, days=days, inserted=inserted),
+        url=build_redirect_url(
+            keywords=keywords,
+            days=normalized_days,
+            inserted=inserted,
+        ),
         status_code=303,
     )
 
@@ -146,14 +162,15 @@ def refresh_jobs(
 @app.get("/jobs")
 def get_jobs(
     keywords: str = Query(default=""),
-    days: int | None = Query(default=None, ge=1),
+    days: int = Query(default=5, ge=1),
     db: Session = Depends(get_db),
 ):
     keywords_list = parse_keywords(keywords)
+    days = normalize_days(days)
 
     jobs = (
         db.query(Job)
-        .order_by(Job.score.desc(), Job.published.desc(), Job.created_at.desc())
+        .order_by(Job.published.desc(), Job.score.desc())
         .all()
     )
 

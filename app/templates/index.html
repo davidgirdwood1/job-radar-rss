@@ -49,8 +49,7 @@
                   min="1"
                   step="1"
                   class="form-control"
-                  value="{{ days if days else '' }}"
-                  placeholder="2"
+                  value="{{ days }}"
                 />
                 <span class="input-group-text">day(s)</span>
               </div>
@@ -71,7 +70,7 @@
           <div class="d-flex flex-wrap gap-2 mt-3">
             <form method="post" action="/refresh" class="d-inline">
               <input type="hidden" name="keywords" value="{{ keywords }}" />
-              <input type="hidden" name="days" value="{{ days if days else '' }}" />
+              <input type="hidden" name="days" value="{{ days }}" />
               <button type="submit" class="btn btn-success btn-lg">
                 Refresh Jobs
               </button>
